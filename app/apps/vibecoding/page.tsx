@@ -38,14 +38,30 @@ interface Ball {
 
 export default function VibecodingGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   useEffect(() => {
     if (!canvasRef.current) return;
 
     const { canvas, context } = init(canvasRef.current);
 
-    const GAME_WIDTH = canvas.width;
-    const GAME_HEIGHT = canvas.height;
+    const ORIGINAL_WIDTH = 500;
+    const ORIGINAL_HEIGHT = 500;
+    let GAME_WIDTH = ORIGINAL_WIDTH;
+    let GAME_HEIGHT = ORIGINAL_HEIGHT;
+    let scaleFactor = 1;
 
     const PLAYER_ACCELERATION = 1.2;
     const PLAYER_MAX_SPEED = 8;
@@ -74,9 +90,69 @@ export default function VibecodingGame() {
 
     const updateMousePosition = (clientX: number, clientY: number) => {
       const rect = canvas.getBoundingClientRect();
-      mouse.x = clientX - rect.left;
-      mouse.y = clientY - rect.top;
+      const canvasX = clientX - rect.left;
+      const canvasY = clientY - rect.top;
+      // Scale mouse coordinates based on canvas display size vs actual size
+      mouse.x = (canvasX / rect.width) * GAME_WIDTH;
+      mouse.y = (canvasY / rect.height) * GAME_HEIGHT;
     };
+
+    const handleFullscreenChange = () => {
+      if (document.fullscreenElement) {
+        // Entering fullscreen - fill entire screen
+        GAME_WIDTH = window.innerWidth;
+        GAME_HEIGHT = window.innerHeight;
+
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+
+        // Calculate scale factor (use average of both dimensions)
+        const scaleX = GAME_WIDTH / ORIGINAL_WIDTH;
+        const scaleY = GAME_HEIGHT / ORIGINAL_HEIGHT;
+        scaleFactor = Math.min(scaleX, scaleY);
+
+        // Scale player size
+        player.width = 30 * scaleFactor;
+        player.height = 30 * scaleFactor;
+
+        // Scale all existing balls
+        balls.forEach((ball) => {
+          ball.sprite.x *= scaleFactor;
+          ball.sprite.y *= scaleFactor;
+          ball.sprite.radius = BALL_LEVELS[ball.level].radius * scaleFactor;
+        });
+
+        // Scale player position
+        player.x *= scaleFactor;
+        player.y *= scaleFactor;
+      } else {
+        // Exiting fullscreen - restore original size
+        const oldScaleFactor = scaleFactor;
+        scaleFactor = 1;
+        GAME_WIDTH = ORIGINAL_WIDTH;
+        GAME_HEIGHT = ORIGINAL_HEIGHT;
+
+        canvas.width = ORIGINAL_WIDTH;
+        canvas.height = ORIGINAL_HEIGHT;
+
+        // Restore player size
+        player.width = 30;
+        player.height = 30;
+
+        // Restore all ball sizes and positions
+        balls.forEach((ball) => {
+          ball.sprite.x /= oldScaleFactor;
+          ball.sprite.y /= oldScaleFactor;
+          ball.sprite.radius = BALL_LEVELS[ball.level].radius;
+        });
+
+        // Restore player position
+        player.x /= oldScaleFactor;
+        player.y /= oldScaleFactor;
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
 
     const handleMouseMove = (e: MouseEvent) => {
       updateMousePosition(e.clientX, e.clientY);
@@ -106,8 +182,8 @@ export default function VibecodingGame() {
       const config = BALL_LEVELS[level];
 
       // Ensure balls spawn fully within visible canvas
-      // Use safe margins from edges
-      const margin = 80; // Extra margin to ensure visibility
+      // Use safe margins from edges (scaled)
+      const margin = 80 * scaleFactor;
       const minX = margin;
       const maxX = GAME_WIDTH - margin;
       const minY = margin;
@@ -119,7 +195,7 @@ export default function VibecodingGame() {
       const sprite = Sprite({
         x,
         y,
-        radius: config.radius,
+        radius: config.radius * scaleFactor,
         color: config.color,
         rotation: 0,
       });
@@ -176,7 +252,7 @@ export default function VibecodingGame() {
       const newSprite = Sprite({
         x: (ball1.sprite.x + ball2.sprite.x) / 2,
         y: (ball1.sprite.y + ball2.sprite.y) / 2,
-        radius: config.radius,
+        radius: config.radius * scaleFactor,
         color: config.color,
         rotation: 0,
       });
@@ -445,6 +521,7 @@ export default function VibecodingGame() {
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("touchmove", handleTouchMove);
       canvas.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
 
@@ -468,13 +545,40 @@ export default function VibecodingGame() {
           </p>
         </div>
 
-        <div className="flex justify-center">
+        <div ref={containerRef} className="flex flex-col items-center justify-center gap-4 bg-slate-100 dark:bg-slate-900">
+          <style jsx>{`
+            div:fullscreen {
+              width: 100vw;
+              height: 100vh;
+              padding: 0;
+              margin: 0;
+            }
+            div:fullscreen canvas {
+              width: 100vw !important;
+              height: 100vh !important;
+              border: none !important;
+              border-radius: 0 !important;
+            }
+            div:fullscreen button {
+              position: fixed;
+              bottom: 20px;
+              left: 50%;
+              transform: translateX(-50%);
+              z-index: 1000;
+            }
+          `}</style>
           <canvas
             ref={canvasRef}
             width={500}
             height={500}
             className="border-4 border-slate-300 dark:border-slate-700 rounded-lg shadow-xl"
           />
+          <button
+            onClick={toggleFullscreen}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
+          >
+            Toggle Fullscreen
+          </button>
         </div>
       </main>
 
