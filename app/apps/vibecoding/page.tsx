@@ -290,7 +290,36 @@ export default function VibecodingGame() {
 
     // Spawn a ball at random position within visible area
     const spawnBall = () => {
-      const level = 0; // Only spawn red balls (level 0)
+      // Calculate highest level to determine spawn probabilities
+      const highestLevel = balls.length > 0 ? Math.max(...balls.map(b => b.level)) : 0;
+
+      // Determine spawn level based on highest level achieved
+      let level = 0;
+      const rand = Math.random();
+
+      if (highestLevel <= 2) {
+        // Early game: only level 0
+        level = 0;
+      } else if (highestLevel <= 5) {
+        // 80% level 0, 20% level 1
+        level = rand < 0.8 ? 0 : 1;
+      } else if (highestLevel <= 9) {
+        // 60% level 0, 30% level 1, 10% level 2
+        if (rand < 0.6) level = 0;
+        else if (rand < 0.9) level = 1;
+        else level = 2;
+      } else if (highestLevel <= 14) {
+        // 50% level 0, 30% level 1, 20% level 2
+        if (rand < 0.5) level = 0;
+        else if (rand < 0.8) level = 1;
+        else level = 2;
+      } else {
+        // High levels: 40% level 0, 35% level 1, 25% level 2
+        if (rand < 0.4) level = 0;
+        else if (rand < 0.75) level = 1;
+        else level = 2;
+      }
+
       const config = BALL_LEVELS[level];
 
       // Ensure balls spawn fully within visible canvas
