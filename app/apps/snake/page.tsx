@@ -29,7 +29,6 @@ export default function Snake() {
     const PLAYER_SIZE = 20;
     const BALL_RADIUS = 8;
     const TAIL_SIZE = 16;
-    const SPAWN_INTERVAL = 2000; // 2 seconds
 
     // Player square
     const player = Sprite({
@@ -49,7 +48,6 @@ export default function Snake() {
     // Game state
     const balls: Ball[] = [];
     const tail: TailSegment[] = [];
-    let lastSpawnTime = Date.now();
     let ballIdCounter = 0;
     let score = 0;
 
@@ -103,7 +101,7 @@ export default function Snake() {
       });
     };
 
-    // Check collision between player and ball
+    // Check collision between player head and ball
     const checkCollision = (ball: Ball) => {
       const playerCenterX = player.x + PLAYER_SIZE / 2;
       const playerCenterY = player.y + PLAYER_SIZE / 2;
@@ -120,10 +118,11 @@ export default function Snake() {
       balls.splice(ballIndex, 1);
       tail.push({ x: player.x, y: player.y, vx: 0, vy: 0 });
       score++;
+      // Spawn a new ball immediately
+      spawnBall();
     };
 
-    // Spawn initial balls
-    spawnBall();
+    // Spawn initial ball
     spawnBall();
 
     // Game loop
@@ -217,13 +216,6 @@ export default function Snake() {
           // Update position
           segment.x += segment.vx;
           segment.y += segment.vy;
-        }
-
-        // Spawn balls
-        const currentTime = Date.now();
-        if (currentTime - lastSpawnTime > SPAWN_INTERVAL) {
-          spawnBall();
-          lastSpawnTime = currentTime;
         }
 
         // Check collisions
