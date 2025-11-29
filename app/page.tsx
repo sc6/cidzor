@@ -1,18 +1,18 @@
 import Link from "next/link";
 
 export default function Home() {
-  const apps = [
+  const games = [
     {
       title: "Merger",
       description: "A physics-based ball merging game",
       href: "/apps/merger",
-      tags: ["Game", "Physics"],
+      tags: ["Physics", "Puzzle"],
     },
     {
-      title: "Calculator",
-      description: "A modern calculator with history",
-      href: "/apps/calculator",
-      tags: ["Math", "Utility"],
+      title: "WIP",
+      description: "New game coming soon...",
+      href: "/apps/wip",
+      tags: ["Coming Soon"],
     },
   ];
 
@@ -53,31 +53,31 @@ export default function Home() {
             Welcome to cidzor
           </h2>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl">
-            Explore my portfolio of small applications, technical articles, and creative projects.
+            Explore my portfolio of games, technical articles, and creative projects.
             Each piece is crafted to learn, experiment, and share knowledge.
           </p>
         </section>
 
-        {/* Apps Section */}
+        {/* Games Section */}
         <section className="mb-16">
           <h3 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-6">
-            Apps
+            Games
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {apps.map((app) => (
+            {games.map((game) => (
               <Link
-                key={app.href}
-                href={app.href}
+                key={game.href}
+                href={game.href}
                 className="group block p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:shadow-lg"
               >
                 <h4 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  {app.title}
+                  {game.title}
                 </h4>
                 <p className="text-slate-600 dark:text-slate-400 mb-4">
-                  {app.description}
+                  {game.description}
                 </p>
                 <div className="flex gap-2 flex-wrap">
-                  {app.tags.map((tag) => (
+                  {game.tags.map((tag) => (
                     <span
                       key={tag}
                       className="px-3 py-1 text-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full"
