@@ -65,7 +65,6 @@ export default function VibecodingGame() {
 
     const balls: Ball[] = [];
     let lastSpawnTime = Date.now();
-    const SPAWN_INTERVAL = 2000; // 2 seconds
 
     // Mouse controls
     const mouse = {
@@ -204,11 +203,27 @@ export default function VibecodingGame() {
           player.y = GAME_HEIGHT - player.height;
         }
 
-        // Spawn balls
+        // Spawn balls at rate based on highest level
         const currentTime = Date.now();
-        if (currentTime - lastSpawnTime > SPAWN_INTERVAL) {
-          spawnBall();
-          lastSpawnTime = currentTime;
+        const highestLevel = balls.length > 0 ? Math.max(...balls.map(b => b.level)) : 0;
+
+        // Only spawn if there are fewer than 45 balls
+        if (balls.length < 45) {
+          // Calculate spawn interval based on level
+          // Level 0-1: 2000ms, Level 19: 250ms
+          let spawnInterval;
+          if (highestLevel <= 1) {
+            spawnInterval = 2000;
+          } else {
+            // Linear interpolation from level 1 (2000ms) to level 19 (250ms)
+            const progress = (highestLevel - 1) / (19 - 1); // 0 to 1
+            spawnInterval = 2000 - progress * (2000 - 250);
+          }
+
+          if (currentTime - lastSpawnTime > spawnInterval) {
+            spawnBall();
+            lastSpawnTime = currentTime;
+          }
         }
 
         // Update balls
@@ -396,7 +411,10 @@ export default function VibecodingGame() {
         context.fillStyle = "#2d3436";
         context.font = "14px Arial";
         context.fillText("Move your mouse to control the square", 10, 20);
-        context.fillText(`Balls: ${balls.length}`, 10, 40);
+
+        // Display level
+        const highestLevel = balls.length > 0 ? Math.max(...balls.map(b => b.level)) : 0;
+        context.fillText(`Level: ${highestLevel}`, 10, 40);
       },
     });
 
