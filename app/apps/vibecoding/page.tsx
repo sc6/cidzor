@@ -158,6 +158,12 @@ export default function VibecodingGame() {
       mouse.y = (canvasY / rect.height) * GAME_HEIGHT;
     };
 
+    // Prevent touch events on container from triggering default behaviors
+    const preventContainerTouch = (e: TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
     const handleFullscreenChange = () => {
       if (document.fullscreenElement) {
         // Entering fullscreen - fill entire screen
@@ -186,6 +192,13 @@ export default function VibecodingGame() {
         // Scale player position
         player.x *= scaleFactor;
         player.y *= scaleFactor;
+
+        // Add touch event listeners to container to prevent iOS swipe gestures
+        if (containerRef.current) {
+          containerRef.current.addEventListener("touchstart", preventContainerTouch, { passive: false });
+          containerRef.current.addEventListener("touchmove", preventContainerTouch, { passive: false });
+          containerRef.current.addEventListener("touchend", preventContainerTouch, { passive: false });
+        }
       } else {
         // Exiting fullscreen - restore original size
         const oldScaleFactor = scaleFactor;
@@ -210,6 +223,13 @@ export default function VibecodingGame() {
         // Restore player position
         player.x /= oldScaleFactor;
         player.y /= oldScaleFactor;
+
+        // Remove touch event listeners from container
+        if (containerRef.current) {
+          containerRef.current.removeEventListener("touchstart", preventContainerTouch);
+          containerRef.current.removeEventListener("touchmove", preventContainerTouch);
+          containerRef.current.removeEventListener("touchend", preventContainerTouch);
+        }
       }
     };
 
@@ -706,6 +726,11 @@ export default function VibecodingGame() {
 
         <div ref={containerRef} className="flex flex-col items-center justify-center gap-4 bg-slate-100 dark:bg-slate-900">
           <style jsx>{`
+            canvas {
+              touch-action: none;
+              -webkit-user-select: none;
+              user-select: none;
+            }
             div:fullscreen {
               width: 100vw;
               height: 100vh;
@@ -717,6 +742,7 @@ export default function VibecodingGame() {
               height: 100vh !important;
               border: none !important;
               border-radius: 0 !important;
+              touch-action: none !important;
             }
             div:fullscreen button {
               display: none;
