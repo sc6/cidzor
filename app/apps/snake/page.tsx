@@ -19,17 +19,38 @@ interface TailSegment {
 
 export default function Snake() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   useEffect(() => {
     if (!canvasRef.current) return;
 
     const { canvas, context } = init(canvasRef.current);
 
-    const GAME_WIDTH = 500;
-    const GAME_HEIGHT = 500;
-    const PLAYER_SIZE = 20;
-    const BALL_RADIUS = 8;
-    const TAIL_SIZE = 16;
+    const ORIGINAL_WIDTH = 500;
+    const ORIGINAL_HEIGHT = 500;
+    let GAME_WIDTH = ORIGINAL_WIDTH;
+    let GAME_HEIGHT = ORIGINAL_HEIGHT;
+    let scaleFactor = 1;
+
+    const BASE_PLAYER_SIZE = 20;
+    const BASE_BALL_RADIUS = 8;
+    const BASE_TAIL_SIZE = 16;
+
+    let PLAYER_SIZE = BASE_PLAYER_SIZE;
+    let BALL_RADIUS = BASE_BALL_RADIUS;
+    let TAIL_SIZE = BASE_TAIL_SIZE;
 
     // Player square
     const player = Sprite({
@@ -65,6 +86,82 @@ export default function Snake() {
 
     canvas.addEventListener('click', enableAudio, { once: true });
     canvas.addEventListener('touchstart', enableAudio, { once: true });
+
+    // Handle fullscreen changes
+    const handleFullscreenChange = () => {
+      if (document.fullscreenElement) {
+        // Entering fullscreen - fill entire screen
+        GAME_WIDTH = window.innerWidth;
+        GAME_HEIGHT = window.innerHeight;
+
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+
+        // Calculate scale factor
+        const scaleX = GAME_WIDTH / ORIGINAL_WIDTH;
+        const scaleY = GAME_HEIGHT / ORIGINAL_HEIGHT;
+        scaleFactor = Math.min(scaleX, scaleY);
+
+        // Update sizes
+        PLAYER_SIZE = BASE_PLAYER_SIZE * scaleFactor;
+        BALL_RADIUS = BASE_BALL_RADIUS * scaleFactor;
+        TAIL_SIZE = BASE_TAIL_SIZE * scaleFactor;
+
+        // Scale player
+        player.width = PLAYER_SIZE;
+        player.height = PLAYER_SIZE;
+        player.x *= scaleFactor;
+        player.y *= scaleFactor;
+
+        // Scale all balls
+        balls.forEach((ball) => {
+          ball.sprite.x *= scaleFactor;
+          ball.sprite.y *= scaleFactor;
+          ball.sprite.radius = BALL_RADIUS;
+        });
+
+        // Scale all tail segments
+        tail.forEach((segment) => {
+          segment.x *= scaleFactor;
+          segment.y *= scaleFactor;
+        });
+      } else {
+        // Exiting fullscreen - restore original size
+        const oldScaleFactor = scaleFactor;
+        scaleFactor = 1;
+        GAME_WIDTH = ORIGINAL_WIDTH;
+        GAME_HEIGHT = ORIGINAL_HEIGHT;
+
+        canvas.width = ORIGINAL_WIDTH;
+        canvas.height = ORIGINAL_HEIGHT;
+
+        // Restore sizes
+        PLAYER_SIZE = BASE_PLAYER_SIZE;
+        BALL_RADIUS = BASE_BALL_RADIUS;
+        TAIL_SIZE = BASE_TAIL_SIZE;
+
+        // Restore player
+        player.width = PLAYER_SIZE;
+        player.height = PLAYER_SIZE;
+        player.x /= oldScaleFactor;
+        player.y /= oldScaleFactor;
+
+        // Restore all balls
+        balls.forEach((ball) => {
+          ball.sprite.x /= oldScaleFactor;
+          ball.sprite.y /= oldScaleFactor;
+          ball.sprite.radius = BALL_RADIUS;
+        });
+
+        // Restore all tail segments
+        tail.forEach((segment) => {
+          segment.x /= oldScaleFactor;
+          segment.y /= oldScaleFactor;
+        });
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
 
     // Play eat sound
     const playEatSound = () => {
@@ -225,16 +322,30 @@ export default function Snake() {
       });
     };
 
-    // Check collision between player head and ball
+    // Check collision between player (head and body) and ball
     const checkCollision = (ball: Ball) => {
+      // Check head collision
       const playerCenterX = player.x + PLAYER_SIZE / 2;
       const playerCenterY = player.y + PLAYER_SIZE / 2;
+      const headDx = ball.sprite.x - playerCenterX;
+      const headDy = ball.sprite.y - playerCenterY;
+      const headDistance = Math.sqrt(headDx * headDx + headDy * headDy);
+      if (headDistance < (PLAYER_SIZE / 2 + BALL_RADIUS)) {
+        return true;
+      }
 
-      const dx = ball.sprite.x - playerCenterX;
-      const dy = ball.sprite.y - playerCenterY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      return distance < (PLAYER_SIZE / 2 + BALL_RADIUS);
+      // Check tail segment collisions
+      for (const segment of tail) {
+        const segmentCenterX = segment.x + TAIL_SIZE / 2;
+        const segmentCenterY = segment.y + TAIL_SIZE / 2;
+        const dx = ball.sprite.x - segmentCenterX;
+        const dy = ball.sprite.y - segmentCenterY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < (TAIL_SIZE / 2 + BALL_RADIUS)) {
+          return true;
+        }
+      }
+      return false;
     };
 
     // Add ball to tail
@@ -536,6 +647,7 @@ export default function Snake() {
       canvas.removeEventListener("touchstart", handleTouchStart);
       canvas.removeEventListener("click", handleCanvasClick);
       canvas.removeEventListener("touchend", handleCanvasClick);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
 
@@ -559,14 +671,40 @@ export default function Snake() {
           </p>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-4">
+        <div ref={containerRef} className="flex flex-col items-center justify-center gap-4">
+          <style jsx>{`
+            canvas {
+              touch-action: none;
+            }
+            div:fullscreen {
+              width: 100vw;
+              height: 100vh;
+              padding: 0;
+              margin: 0;
+              background: #ecf0f1;
+            }
+            div:fullscreen canvas {
+              width: 100vw !important;
+              height: 100vh !important;
+              border: none !important;
+              border-radius: 0 !important;
+            }
+            div:fullscreen button {
+              display: none;
+            }
+          `}</style>
           <canvas
             ref={canvasRef}
             width={500}
             height={500}
             className="border-4 border-slate-300 dark:border-slate-700 rounded-lg shadow-xl"
-            style={{ touchAction: 'none' }}
           />
+          <button
+            onClick={toggleFullscreen}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
+          >
+            Toggle Fullscreen
+          </button>
         </div>
       </main>
 
