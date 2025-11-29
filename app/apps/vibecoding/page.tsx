@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { init, GameLoop, Sprite } from "kontra";
 
-// Ball level configuration (10 levels)
+// Ball level configuration (20 levels)
 const BALL_LEVELS = [
   { radius: 10, color: "#ff6b6b" },   // Level 0 - Red
   { radius: 15, color: "#4ecdc4" },   // Level 1 - Teal
@@ -15,7 +15,17 @@ const BALL_LEVELS = [
   { radius: 40, color: "#a29bfe" },   // Level 6 - Purple
   { radius: 45, color: "#fd79a8" },   // Level 7 - Pink
   { radius: 50, color: "#fdcb6e" },   // Level 8 - Orange
-  { radius: 60, color: "#6c5ce7" },   // Level 9 - Deep Purple
+  { radius: 55, color: "#6c5ce7" },   // Level 9 - Deep Purple
+  { radius: 60, color: "#e17055" },   // Level 10 - Coral
+  { radius: 65, color: "#00b894" },   // Level 11 - Mint
+  { radius: 70, color: "#0984e3" },   // Level 12 - Sky Blue
+  { radius: 75, color: "#fdcb6e" },   // Level 13 - Gold
+  { radius: 80, color: "#d63031" },   // Level 14 - Dark Red
+  { radius: 85, color: "#00cec9" },   // Level 15 - Cyan
+  { radius: 90, color: "#6c5ce7" },   // Level 16 - Indigo
+  { radius: 95, color: "#ff7675" },   // Level 17 - Light Red
+  { radius: 100, color: "#74b9ff" },  // Level 18 - Baby Blue
+  { radius: 110, color: "#a29bfe" },  // Level 19 - Lavender
 ];
 
 interface Ball {
@@ -73,7 +83,7 @@ export default function VibecodingGame() {
 
     // Spawn a ball at random position within visible area
     const spawnBall = () => {
-      const level = Math.floor(Math.random() * 3); // Start with levels 0-2
+      const level = 0; // Only spawn red balls (level 0)
       const config = BALL_LEVELS[level];
 
       // Ensure balls spawn fully within visible canvas
@@ -171,45 +181,18 @@ export default function VibecodingGame() {
     // Game loop
     const loop = GameLoop({
       update: () => {
-        // Player follows mouse cursor
-        const playerCenterX = player.x + player.width / 2;
-        const playerCenterY = player.y + player.height / 2;
+        // Player follows mouse cursor instantly
+        // Center the player on the mouse cursor
+        const newX = mouse.x - player.width / 2;
+        const newY = mouse.y - player.height / 2;
 
-        // Calculate direction to mouse
-        const dx = mouse.x - playerCenterX;
-        const dy = mouse.y - playerCenterY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        // Calculate velocity based on position change (for ball pushing physics)
+        player.dx = newX - player.x;
+        player.dy = newY - player.y;
 
-        // Move towards mouse with acceleration
-        if (distance > 5) { // Dead zone to prevent jittering
-          const dirX = dx / distance;
-          const dirY = dy / distance;
-
-          // Apply acceleration towards mouse
-          player.dx += dirX * PLAYER_ACCELERATION;
-          player.dy += dirY * PLAYER_ACCELERATION;
-        } else {
-          // Apply strong friction when near target
-          player.dx *= 0.7;
-          player.dy *= 0.7;
-        }
-
-        // Apply friction
-        player.dx *= PLAYER_FRICTION;
-        player.dy *= PLAYER_FRICTION;
-
-        // Cap max speed
-        const currentSpeed = Math.sqrt(player.dx * player.dx + player.dy * player.dy);
-        if (currentSpeed > PLAYER_MAX_SPEED) {
-          player.dx = (player.dx / currentSpeed) * PLAYER_MAX_SPEED;
-          player.dy = (player.dy / currentSpeed) * PLAYER_MAX_SPEED;
-        }
-
-        // Stop very slow movement
-        if (Math.abs(player.dx) < 0.1) player.dx = 0;
-        if (Math.abs(player.dy) < 0.1) player.dy = 0;
-
-        player.update();
+        // Update position
+        player.x = newX;
+        player.y = newY;
 
         // Keep player in bounds
         if (player.x < 0) player.x = 0;
