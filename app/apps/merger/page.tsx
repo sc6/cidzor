@@ -36,7 +36,7 @@ interface Ball {
   rotation: number; // For rolling effect
 }
 
-export default function VibecodingGame() {
+export default function Merger() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -757,7 +757,7 @@ export default function VibecodingGame() {
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-            Vibecoding Game Experiment
+            Merger
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
             Move the square and push balls together to merge them!

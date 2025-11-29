@@ -3,10 +3,10 @@ import Link from "next/link";
 export default function Home() {
   const apps = [
     {
-      title: "Vibecoding Game Experiment",
-      description: "An experimental coding game",
-      href: "/apps/vibecoding",
-      tags: ["Experiment", "Game"],
+      title: "Merger",
+      description: "A physics-based ball merging game",
+      href: "/apps/merger",
+      tags: ["Game", "Physics"],
     },
     {
       title: "Calculator",
