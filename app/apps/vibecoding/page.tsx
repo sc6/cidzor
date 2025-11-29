@@ -66,19 +66,39 @@ export default function VibecodingGame() {
     const balls: Ball[] = [];
     let lastSpawnTime = Date.now();
 
-    // Mouse controls
+    // Mouse/Touch controls
     const mouse = {
       x: GAME_WIDTH / 2,
       y: GAME_HEIGHT / 2,
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const updateMousePosition = (clientX: number, clientY: number) => {
       const rect = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
+      mouse.x = clientX - rect.left;
+      mouse.y = clientY - rect.top;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      updateMousePosition(e.clientX, e.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault(); // Prevent page scrolling
+      if (e.touches.length > 0) {
+        updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault(); // Prevent page scrolling
+      if (e.touches.length > 0) {
+        updateMousePosition(e.touches[0].clientX, e.touches[0].clientY);
+      }
     };
 
     canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
 
     // Spawn a ball at random position within visible area
     const spawnBall = () => {
@@ -423,6 +443,8 @@ export default function VibecodingGame() {
     return () => {
       loop.stop();
       canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("touchmove", handleTouchMove);
+      canvas.removeEventListener("touchstart", handleTouchStart);
     };
   }, []);
 
