@@ -68,6 +68,18 @@ export default function VibecodingGame() {
     const PLAYER_FRICTION = 0.85;
     const FRICTION = 0.95;
 
+    // Detect device type for exit instructions
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+
+    const getExitInstruction = () => {
+      if (isIOS) return "Exit: Swipe from top edge";
+      if (isAndroid) return "Exit: Swipe from top or use back button";
+      if (isTouchDevice) return "Exit: Swipe from edge";
+      return "Exit: Press Esc";
+    };
+
     // Player square (top-down view)
     const player = Sprite({
       x: GAME_WIDTH / 2 - 15,
@@ -511,6 +523,11 @@ export default function VibecodingGame() {
         // Display level
         const highestLevel = balls.length > 0 ? Math.max(...balls.map(b => b.level)) : 0;
         context.fillText(`Level: ${highestLevel}`, 10, 40);
+
+        // Show exit fullscreen instructions when in fullscreen
+        if (document.fullscreenElement) {
+          context.fillText(getExitInstruction(), 10, 60);
+        }
       },
     });
 
@@ -560,11 +577,7 @@ export default function VibecodingGame() {
               border-radius: 0 !important;
             }
             div:fullscreen button {
-              position: fixed;
-              bottom: 20px;
-              left: 50%;
-              transform: translateX(-50%);
-              z-index: 1000;
+              display: none;
             }
           `}</style>
           <canvas
