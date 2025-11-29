@@ -16,6 +16,30 @@ export default function Home() {
     },
   ];
 
+  const apps = [
+    {
+      title: "StringTypes",
+      description: "Organize contacts by interest",
+      href: "https://stringtypes.com",
+      tags: ["Productivity", "Social"],
+      external: true,
+    },
+    {
+      title: "1kChallenger",
+      description: "Create your own $1k challenge and track your project progress",
+      href: "https://1kchallenger.com",
+      tags: ["Productivity", "Goals"],
+      external: true,
+    },
+    {
+      title: "CardsEverywhere",
+      description: "Save and organize bookmarks by tab, share with others",
+      href: "https://cardseverywhere.com",
+      tags: ["Productivity", "Organization"],
+      external: true,
+    },
+  ];
+
   const articles = [
     {
       title: "Getting Started with Next.js",
@@ -78,6 +102,44 @@ export default function Home() {
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {game.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 text-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Apps Section */}
+        <section className="mb-16">
+          <h3 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-6">
+            Apps
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {apps.map((app) => (
+              <Link
+                key={app.href}
+                href={app.href}
+                target={app.external ? "_blank" : undefined}
+                rel={app.external ? "noopener noreferrer" : undefined}
+                className="group block p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:shadow-lg"
+              >
+                <h4 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {app.title}
+                  {app.external && (
+                    <span className="ml-2 text-sm text-slate-400">↗</span>
+                  )}
+                </h4>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                  {app.description}
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {app.tags.map((tag) => (
                     <span
                       key={tag}
                       className="px-3 py-1 text-sm bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full"
