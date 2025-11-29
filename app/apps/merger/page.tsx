@@ -770,6 +770,15 @@ export default function Merger() {
               touch-action: none;
               -webkit-user-select: none;
               user-select: none;
+              max-width: 100%;
+              height: auto;
+              width: 500px;
+            }
+            @media (max-width: 640px) {
+              canvas {
+                width: calc(100vw - 3rem) !important;
+                height: calc(100vw - 3rem) !important;
+              }
             }
             div:fullscreen {
               width: 100vw;
