@@ -6,26 +6,26 @@ import { init, GameLoop, Sprite } from "kontra";
 
 // Ball level configuration (20 levels)
 const BALL_LEVELS = [
-  { radius: 10, color: "#ff6b6b" },   // Level 0 - Red
-  { radius: 15, color: "#4ecdc4" },   // Level 1 - Teal
-  { radius: 20, color: "#45b7d1" },   // Level 2 - Blue
-  { radius: 25, color: "#96ceb4" },   // Level 3 - Green
-  { radius: 30, color: "#ffeaa7" },   // Level 4 - Yellow
-  { radius: 35, color: "#dfe6e9" },   // Level 5 - Gray
-  { radius: 40, color: "#a29bfe" },   // Level 6 - Purple
-  { radius: 45, color: "#fd79a8" },   // Level 7 - Pink
-  { radius: 50, color: "#fdcb6e" },   // Level 8 - Orange
-  { radius: 55, color: "#6c5ce7" },   // Level 9 - Deep Purple
-  { radius: 60, color: "#e17055" },   // Level 10 - Coral
-  { radius: 65, color: "#00b894" },   // Level 11 - Mint
-  { radius: 70, color: "#0984e3" },   // Level 12 - Sky Blue
-  { radius: 75, color: "#fdcb6e" },   // Level 13 - Gold
-  { radius: 80, color: "#d63031" },   // Level 14 - Dark Red
-  { radius: 85, color: "#00cec9" },   // Level 15 - Cyan
-  { radius: 90, color: "#6c5ce7" },   // Level 16 - Indigo
-  { radius: 95, color: "#ff7675" },   // Level 17 - Light Red
-  { radius: 100, color: "#74b9ff" },  // Level 18 - Baby Blue
-  { radius: 110, color: "#a29bfe" },  // Level 19 - Lavender
+  { radius: 15, color: "#ff6b6b" },   // Level 0 - Red
+  { radius: 22, color: "#4ecdc4" },   // Level 1 - Teal
+  { radius: 28, color: "#45b7d1" },   // Level 2 - Blue
+  { radius: 34, color: "#96ceb4" },   // Level 3 - Green
+  { radius: 40, color: "#ffeaa7" },   // Level 4 - Yellow
+  { radius: 46, color: "#dfe6e9" },   // Level 5 - Gray
+  { radius: 52, color: "#a29bfe" },   // Level 6 - Purple
+  { radius: 58, color: "#fd79a8" },   // Level 7 - Pink
+  { radius: 64, color: "#fdcb6e" },   // Level 8 - Orange
+  { radius: 70, color: "#6c5ce7" },   // Level 9 - Deep Purple
+  { radius: 76, color: "#e17055" },   // Level 10 - Coral
+  { radius: 82, color: "#00b894" },   // Level 11 - Mint
+  { radius: 88, color: "#0984e3" },   // Level 12 - Sky Blue
+  { radius: 94, color: "#fdcb6e" },   // Level 13 - Gold
+  { radius: 100, color: "#d63031" },  // Level 14 - Dark Red
+  { radius: 106, color: "#00cec9" },  // Level 15 - Cyan
+  { radius: 112, color: "#6c5ce7" },  // Level 16 - Indigo
+  { radius: 118, color: "#ff7675" },  // Level 17 - Light Red
+  { radius: 124, color: "#74b9ff" },  // Level 18 - Baby Blue
+  { radius: 135, color: "#a29bfe" },  // Level 19 - Lavender
 ];
 
 interface Ball {
