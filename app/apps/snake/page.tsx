@@ -51,6 +51,96 @@ export default function Snake() {
     const tail: TailSegment[] = [];
     let ballIdCounter = 0;
     let score = 0;
+    let isMuted = false;
+
+    // Audio context for sound effects
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+    // Resume audio context on first user interaction (required by browsers)
+    const enableAudio = () => {
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    };
+
+    canvas.addEventListener('click', enableAudio, { once: true });
+    canvas.addEventListener('touchstart', enableAudio, { once: true });
+
+    // Play eat sound
+    const playEatSound = () => {
+      if (isMuted) return;
+
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.frequency.value = 440; // A4 note
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.15);
+    };
+
+    // Play sound when blue squares compress to green
+    const playGreenCompressionSound = () => {
+      if (isMuted) return;
+
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      // Rising tone from 523Hz (C5) to 659Hz (E5)
+      oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
+      oscillator.frequency.linearRampToValueAtTime(659, audioContext.currentTime + 0.3);
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    };
+
+    // Play sound when green squares compress to yellow
+    const playYellowCompressionSound = () => {
+      if (isMuted) return;
+
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      // Rising tone from 659Hz (E5) to 880Hz (A5) - higher pitched
+      oscillator.frequency.setValueAtTime(659, audioContext.currentTime);
+      oscillator.frequency.linearRampToValueAtTime(880, audioContext.currentTime + 0.4);
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.4);
+    };
 
     // Update mouse position
     const updateMousePosition = (clientX: number, clientY: number) => {
@@ -82,6 +172,39 @@ export default function Snake() {
     canvas.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
     canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+
+    // Handle canvas clicks (mute icon)
+    const handleCanvasClick = (e: MouseEvent | TouchEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      let clientX, clientY;
+
+      if (e instanceof MouseEvent) {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      } else {
+        const touch = e.changedTouches[0] || e.touches[0];
+        if (!touch) return;
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+      }
+
+      const canvasX = clientX - rect.left;
+      const canvasY = clientY - rect.top;
+      const x = (canvasX / rect.width) * GAME_WIDTH;
+      const y = (canvasY / rect.height) * GAME_HEIGHT;
+
+      // Check if click is on mute icon (top right corner)
+      const iconX = GAME_WIDTH - 30;
+      const iconY = 10;
+      const iconSize = 20;
+
+      if (x >= iconX && x <= iconX + iconSize && y >= iconY && y <= iconY + iconSize) {
+        isMuted = !isMuted;
+      }
+    };
+
+    canvas.addEventListener("click", handleCanvasClick);
+    canvas.addEventListener("touchend", handleCanvasClick);
 
     // Spawn a ball at random position
     const spawnBall = () => {
@@ -120,6 +243,9 @@ export default function Snake() {
       tail.push({ x: player.x, y: player.y, vx: 0, vy: 0, level: 0 });
       score++;
 
+      // Play eat sound
+      playEatSound();
+
       // Check if we need to compress blue segments (100 blue -> 1 green)
       const blueSegments = tail.filter(seg => seg.level === 0);
       if (blueSegments.length === 100) {
@@ -139,6 +265,9 @@ export default function Snake() {
           vy: lastBlueSegment.vy,
           level: 1
         });
+
+        // Play green compression sound
+        playGreenCompressionSound();
       }
 
       // Check if we need to compress green segments (100 green -> 1 yellow)
@@ -160,10 +289,17 @@ export default function Snake() {
           vy: lastGreenSegment.vy,
           level: 2
         });
+
+        // Play yellow compression sound
+        playYellowCompressionSound();
       }
 
-      // Spawn a new ball immediately
-      spawnBall();
+      // Keep spawning until we reach the max number of balls
+      // Max balls = 1 + floor(score / 100)
+      const maxBalls = Math.floor(score / 100) + 1;
+      while (balls.length < maxBalls) {
+        spawnBall();
+      }
     };
 
     // Spawn initial ball
@@ -345,6 +481,49 @@ export default function Snake() {
         context.font = "16px Arial";
         context.fillText(`Score: ${score}`, 10, 25);
         context.fillText(`Length: ${tail.length}`, 10, 45);
+
+        // Draw mute icon in top right corner
+        const iconX = GAME_WIDTH - 30;
+        const iconY = 10;
+        const iconSize = 20;
+
+        context.globalAlpha = 0.4;
+        context.fillStyle = "#888";
+        context.strokeStyle = "#888";
+        context.lineWidth = 1.5;
+
+        // Draw speaker
+        context.beginPath();
+        context.moveTo(iconX + 3, iconY + 6);
+        context.lineTo(iconX + 3, iconY + 14);
+        context.lineTo(iconX + 8, iconY + 14);
+        context.lineTo(iconX + 14, iconY + 17);
+        context.lineTo(iconX + 14, iconY + 3);
+        context.lineTo(iconX + 8, iconY + 6);
+        context.closePath();
+        context.fill();
+
+        if (!isMuted) {
+          // Draw sound waves
+          context.beginPath();
+          context.arc(iconX + 14, iconY + 10, 3, -Math.PI / 4, Math.PI / 4);
+          context.stroke();
+          context.beginPath();
+          context.arc(iconX + 14, iconY + 10, 5, -Math.PI / 4, Math.PI / 4);
+          context.stroke();
+        } else {
+          // Draw X over speaker
+          context.lineWidth = 2;
+          context.strokeStyle = "#c0392b";
+          context.beginPath();
+          context.moveTo(iconX + 1, iconY + 2);
+          context.lineTo(iconX + iconSize - 2, iconY + iconSize - 2);
+          context.moveTo(iconX + iconSize - 2, iconY + 2);
+          context.lineTo(iconX + 1, iconY + iconSize - 2);
+          context.stroke();
+        }
+
+        context.globalAlpha = 1.0;
       },
     });
 
@@ -355,6 +534,8 @@ export default function Snake() {
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("touchmove", handleTouchMove);
       canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("click", handleCanvasClick);
+      canvas.removeEventListener("touchend", handleCanvasClick);
     };
   }, []);
 
