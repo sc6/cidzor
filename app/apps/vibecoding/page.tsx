@@ -80,6 +80,54 @@ export default function VibecodingGame() {
       return "Exit: Press Esc";
     };
 
+    // Audio context for sound effects
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+    // Resume audio context on first user interaction (required by browsers)
+    const enableAudio = () => {
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    };
+
+    canvas.addEventListener('click', enableAudio, { once: true });
+    canvas.addEventListener('touchstart', enableAudio, { once: true });
+
+    // Play merge sound based on level
+    const playMergeSound = (level: number) => {
+      // Don't play if muted
+      if (isMuted) return;
+
+      // Ensure audio context is running
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      // Create oscillator for tone
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      // Frequency increases with level (200Hz to 1000Hz)
+      const baseFrequency = 200;
+      const frequency = baseFrequency + (level * 40);
+      oscillator.frequency.value = frequency;
+
+      // Use sine wave for smooth tone
+      oscillator.type = 'sine';
+
+      // Volume envelope - quick attack and decay
+      gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+
+      // Connect nodes
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      // Play sound
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.4);
+    };
+
     // Player square (top-down view)
     const player = Sprite({
       x: GAME_WIDTH / 2 - 15,
@@ -93,6 +141,7 @@ export default function VibecodingGame() {
 
     const balls: Ball[] = [];
     let lastSpawnTime = Date.now();
+    let isMuted = false;
 
     // Mouse/Touch controls
     const mouse = {
@@ -188,6 +237,37 @@ export default function VibecodingGame() {
     canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
     canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
 
+    // Handle canvas clicks (mute icon)
+    const handleCanvasClick = (e: MouseEvent | TouchEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      let clientX, clientY;
+
+      if (e instanceof MouseEvent) {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      } else {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      }
+
+      const canvasX = clientX - rect.left;
+      const canvasY = clientY - rect.top;
+      const x = (canvasX / rect.width) * GAME_WIDTH;
+      const y = (canvasY / rect.height) * GAME_HEIGHT;
+
+      // Check if click is on mute icon (top right corner)
+      const iconX = GAME_WIDTH - 30 * scaleFactor;
+      const iconY = 10 * scaleFactor;
+      const iconSize = 20 * scaleFactor;
+
+      if (x >= iconX && x <= iconX + iconSize && y >= iconY && y <= iconY + iconSize) {
+        isMuted = !isMuted;
+      }
+    };
+
+    canvas.addEventListener("click", handleCanvasClick);
+    canvas.addEventListener("touchend", handleCanvasClick);
+
     // Spawn a ball at random position within visible area
     const spawnBall = () => {
       const level = 0; // Only spawn red balls (level 0)
@@ -281,6 +361,9 @@ export default function VibecodingGame() {
       balls.splice(Math.max(index1, index2), 1);
       balls.splice(Math.min(index1, index2), 1);
       balls.push(newBall);
+
+      // Play merge sound
+      playMergeSound(newLevel);
 
       return true;
     };
@@ -528,6 +611,49 @@ export default function VibecodingGame() {
         if (document.fullscreenElement) {
           context.fillText(getExitInstruction(), 10, 60);
         }
+
+        // Draw mute icon in top right corner (discreet)
+        const iconX = GAME_WIDTH - 30;
+        const iconY = 10;
+        const iconSize = 20;
+
+        context.globalAlpha = 0.4; // Make it semi-transparent
+        context.fillStyle = "#888";
+        context.strokeStyle = "#888";
+        context.lineWidth = 1.5;
+
+        // Draw small speaker
+        context.beginPath();
+        context.moveTo(iconX + 3, iconY + 6);
+        context.lineTo(iconX + 3, iconY + 14);
+        context.lineTo(iconX + 8, iconY + 14);
+        context.lineTo(iconX + 14, iconY + 17);
+        context.lineTo(iconX + 14, iconY + 3);
+        context.lineTo(iconX + 8, iconY + 6);
+        context.closePath();
+        context.fill();
+
+        if (!isMuted) {
+          // Draw small sound waves
+          context.beginPath();
+          context.arc(iconX + 14, iconY + 10, 3, -Math.PI / 4, Math.PI / 4);
+          context.stroke();
+          context.beginPath();
+          context.arc(iconX + 14, iconY + 10, 5, -Math.PI / 4, Math.PI / 4);
+          context.stroke();
+        } else {
+          // Draw small X over speaker
+          context.lineWidth = 2;
+          context.strokeStyle = "#c0392b";
+          context.beginPath();
+          context.moveTo(iconX + 1, iconY + 2);
+          context.lineTo(iconX + iconSize - 2, iconY + iconSize - 2);
+          context.moveTo(iconX + iconSize - 2, iconY + 2);
+          context.lineTo(iconX + 1, iconY + iconSize - 2);
+          context.stroke();
+        }
+
+        context.globalAlpha = 1.0; // Reset alpha
       },
     });
 
@@ -538,6 +664,8 @@ export default function VibecodingGame() {
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("touchmove", handleTouchMove);
       canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("click", handleCanvasClick);
+      canvas.removeEventListener("touchend", handleCanvasClick);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
