@@ -277,8 +277,11 @@ export default function Merger() {
         clientX = e.clientX;
         clientY = e.clientY;
       } else {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
+        // Use changedTouches for touchend events (touches array is empty on touchend)
+        const touch = e.changedTouches[0] || e.touches[0];
+        if (!touch) return;
+        clientX = touch.clientX;
+        clientY = touch.clientY;
       }
 
       const canvasX = clientX - rect.left;
