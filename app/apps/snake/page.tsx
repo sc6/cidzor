@@ -14,6 +14,7 @@ interface TailSegment {
   y: number;
   vx: number;
   vy: number;
+  level: number; // 0 = blue, 1 = green (100 blues), 2 = yellow (100 greens)
 }
 
 export default function Snake() {
@@ -116,8 +117,51 @@ export default function Snake() {
     // Add ball to tail
     const eatBall = (ballIndex: number) => {
       balls.splice(ballIndex, 1);
-      tail.push({ x: player.x, y: player.y, vx: 0, vy: 0 });
+      tail.push({ x: player.x, y: player.y, vx: 0, vy: 0, level: 0 });
       score++;
+
+      // Check if we need to compress blue segments (100 blue -> 1 green)
+      const blueSegments = tail.filter(seg => seg.level === 0);
+      if (blueSegments.length === 100) {
+        // Keep all higher level segments
+        const higherLevelSegments = tail.filter(seg => seg.level > 0);
+
+        // Get the position of the last blue segment
+        const lastBlueSegment = blueSegments[blueSegments.length - 1];
+
+        // Replace tail with higher level segments plus one new green segment
+        tail.length = 0;
+        tail.push(...higherLevelSegments);
+        tail.push({
+          x: lastBlueSegment.x,
+          y: lastBlueSegment.y,
+          vx: lastBlueSegment.vx,
+          vy: lastBlueSegment.vy,
+          level: 1
+        });
+      }
+
+      // Check if we need to compress green segments (100 green -> 1 yellow)
+      const greenSegments = tail.filter(seg => seg.level === 1);
+      if (greenSegments.length === 100) {
+        // Keep all other level segments
+        const otherSegments = tail.filter(seg => seg.level !== 1);
+
+        // Get the position of the last green segment
+        const lastGreenSegment = greenSegments[greenSegments.length - 1];
+
+        // Replace tail with other segments plus one new yellow segment
+        tail.length = 0;
+        tail.push(...otherSegments);
+        tail.push({
+          x: lastGreenSegment.x,
+          y: lastGreenSegment.y,
+          vx: lastGreenSegment.vx,
+          vy: lastGreenSegment.vy,
+          level: 2
+        });
+      }
+
       // Spawn a new ball immediately
       spawnBall();
     };
@@ -253,11 +297,24 @@ export default function Snake() {
 
         // Render tail segments
         tail.forEach((segment, index) => {
-          context.fillStyle = "#3498db";
+          // Color based on compression level
+          if (segment.level === 0) {
+            // Blue - regular segments
+            context.fillStyle = "#3498db";
+            context.strokeStyle = "#2980b9";
+          } else if (segment.level === 1) {
+            // Green - 100 blue segments
+            context.fillStyle = "#27ae60";
+            context.strokeStyle = "#229954";
+          } else if (segment.level === 2) {
+            // Yellow - 100 green segments (10,000 blues)
+            context.fillStyle = "#f1c40f";
+            context.strokeStyle = "#f39c12";
+          }
+
           context.fillRect(segment.x, segment.y, TAIL_SIZE, TAIL_SIZE);
 
           // Draw outline
-          context.strokeStyle = "#2980b9";
           context.lineWidth = 2;
           context.strokeRect(segment.x, segment.y, TAIL_SIZE, TAIL_SIZE);
         });
