@@ -601,15 +601,29 @@ export default function VibecodingGame() {
         // Draw instructions
         context.fillStyle = "#2d3436";
         context.font = "14px Arial";
-        context.fillText("Move your mouse to control the square", 10, 20);
 
-        // Display level
-        const highestLevel = balls.length > 0 ? Math.max(...balls.map(b => b.level)) : 0;
-        context.fillText(`Level: ${highestLevel}`, 10, 40);
-
-        // Show exit fullscreen instructions when in fullscreen
+        // In fullscreen mode, center text at the top
         if (document.fullscreenElement) {
-          context.fillText(getExitInstruction(), 10, 60);
+          context.textAlign = "center";
+          const centerX = GAME_WIDTH / 2;
+
+          context.fillText("Move your mouse to control the square", centerX, 30);
+
+          // Display level
+          const highestLevel = balls.length > 0 ? Math.max(...balls.map(b => b.level)) : 0;
+          context.fillText(`Level: ${highestLevel}`, centerX, 55);
+
+          // Show exit fullscreen instructions
+          context.fillText(getExitInstruction(), centerX, 80);
+
+          context.textAlign = "left"; // Reset alignment
+        } else {
+          // Normal mode: top left positioning
+          context.fillText("Move your mouse to control the square", 10, 20);
+
+          // Display level
+          const highestLevel = balls.length > 0 ? Math.max(...balls.map(b => b.level)) : 0;
+          context.fillText(`Level: ${highestLevel}`, 10, 40);
         }
 
         // Draw mute icon in top right corner (discreet)
