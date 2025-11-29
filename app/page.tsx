@@ -9,10 +9,10 @@ export default function Home() {
       tags: ["Physics", "Puzzle"],
     },
     {
-      title: "WIP",
-      description: "New game coming soon...",
-      href: "/apps/wip",
-      tags: ["Coming Soon"],
+      title: "Snake",
+      description: "Classic snake game - coming soon!",
+      href: "/apps/snake",
+      tags: ["Classic", "Coming Soon"],
     },
   ];
 
