@@ -189,9 +189,20 @@ export default function VibecodingGame() {
           ball.sprite.radius = BALL_LEVELS[ball.level].radius * scaleFactor;
         });
 
-        // Scale player position
-        player.x *= scaleFactor;
-        player.y *= scaleFactor;
+        // Detect if user is on iPad
+        const isIPad = /iPad/.test(navigator.userAgent) ||
+                       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        // Scale player position - for iPad, start near bottom
+        if (isIPad) {
+          player.x = GAME_WIDTH / 2 - player.width / 2;
+          player.y = GAME_HEIGHT * 0.75; // Position at 75% down the screen
+          mouse.x = player.x + player.width / 2;
+          mouse.y = player.y + player.height / 2;
+        } else {
+          player.x *= scaleFactor;
+          player.y *= scaleFactor;
+        }
 
         // Add touch event listeners to container to prevent iOS swipe gestures
         if (containerRef.current) {
