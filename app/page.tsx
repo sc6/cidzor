@@ -10,9 +10,9 @@ export default function Home() {
     },
     {
       title: "Snake",
-      description: "Classic snake game - coming soon!",
+      description: "Control the square and eat balls to grow your tail",
       href: "/apps/snake",
-      tags: ["Classic", "Coming Soon"],
+      tags: ["Classic", "Arcade"],
     },
   ];
 
