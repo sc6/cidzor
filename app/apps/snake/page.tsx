@@ -322,7 +322,7 @@ export default function Snake() {
       });
     };
 
-    // Check collision between player (head and body) and ball
+    // Check collision between player (head only) and ball
     const checkCollision = (ball: Ball) => {
       // Check head collision
       const playerCenterX = player.x + PLAYER_SIZE / 2;
@@ -334,17 +334,6 @@ export default function Snake() {
         return true;
       }
 
-      // Check tail segment collisions
-      for (const segment of tail) {
-        const segmentCenterX = segment.x + TAIL_SIZE / 2;
-        const segmentCenterY = segment.y + TAIL_SIZE / 2;
-        const dx = ball.sprite.x - segmentCenterX;
-        const dy = ball.sprite.y - segmentCenterY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < (TAIL_SIZE / 2 + BALL_RADIUS)) {
-          return true;
-        }
-      }
       return false;
     };
 
@@ -405,12 +394,8 @@ export default function Snake() {
         playYellowCompressionSound();
       }
 
-      // Keep spawning until we reach the max number of balls
-      // Max balls = 1 + floor(score / 100)
-      const maxBalls = Math.floor(score / 100) + 1;
-      while (balls.length < maxBalls) {
-        spawnBall();
-      }
+      // Spawn a new ball to replace the one that was eaten
+      spawnBall();
     };
 
     // Spawn initial ball
