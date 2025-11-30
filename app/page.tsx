@@ -18,6 +18,13 @@ export default function Home() {
 
   const apps = [
     {
+      title: "Simigram",
+      description: "Easily create chat channels and share chats without logging in",
+      href: "https://simigram.com",
+      tags: ["Communication", "Social"],
+      external: true,
+    },
+    {
       title: "StringTypes",
       description: "Organize contacts by interest",
       href: "https://stringtypes.com",
