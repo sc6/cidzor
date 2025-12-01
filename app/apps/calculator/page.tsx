@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Header from "../../components/Header";
 
 export default function CalculatorApp() {
   const [display, setDisplay] = useState("0");
@@ -81,13 +81,7 @@ export default function CalculatorApp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto px-6 py-6">
-          <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
-            ← Back to Home
-          </Link>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Header from "./components/Header";
 
 export default function Home() {
   const games = [
@@ -64,17 +65,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            cidzor
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
-            A collection of apps, articles, and experiments
-          </p>
-        </div>
-      </header>
+      <Header showBackButton={false} />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-6 py-12">
@@ -85,7 +76,6 @@ export default function Home() {
           </h2>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl">
             Explore my portfolio of games, technical articles, and creative projects.
-            Each piece is crafted to learn, experiment, and share knowledge.
           </p>
         </section>
 
