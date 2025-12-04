@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getArticleBySlug } from '@/db/articles';
+import { getArticleById } from '@/db/articles';
 import Header from '@/app/components/Header';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -17,9 +17,17 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const article = await getArticleBySlug(slug);
+export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }) {
+  const { id } = await params;
+  const articleId = parseInt(id, 10);
+
+  if (isNaN(articleId)) {
+    return {
+      title: 'Article Not Found',
+    };
+  }
+
+  const article = await getArticleById(articleId);
 
   if (!article) {
     return {
@@ -33,9 +41,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const article = await getArticleBySlug(slug);
+export default async function ArticlePage({ params }: { params: Promise<{ id: string; slug: string }> }) {
+  const { id } = await params;
+  const articleId = parseInt(id, 10);
+
+  if (isNaN(articleId)) {
+    notFound();
+  }
+
+  const article = await getArticleById(articleId);
 
   if (!article) {
     notFound();

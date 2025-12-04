@@ -74,7 +74,7 @@ export default async function Home() {
     ...dbArticles.map((article) => ({
       title: article.title,
       description: article.description || '',
-      href: `/articles/${article.slug}`,
+      href: `/articles/${article.id}/${article.slug}`,
       date: article.createdAt.toISOString(),
       tags: article.tags,
     })),

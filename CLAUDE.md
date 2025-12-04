@@ -1,0 +1,1 @@
+Any code that should not be part of git should be added to the "temp" folder which should be in the .gitignore list.
