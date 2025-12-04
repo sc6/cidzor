@@ -8,7 +8,9 @@
       "Bash(npm run dev:*)",
       "Bash(pkill:*)",
       "Bash(npx tsc:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []
