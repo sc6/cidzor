@@ -10,7 +10,10 @@
       "Bash(npx tsc:*)",
       "Bash(lsof:*)",
       "Bash(xargs kill -9)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(netstat:*)",
+      "Bash(ss:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

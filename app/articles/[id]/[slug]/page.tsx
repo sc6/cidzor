@@ -140,7 +140,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
                       </p>
                     );
                   }
-                  return <p className="mb-4 text-lg leading-relaxed text-slate-700 dark:text-slate-300" {...props} />;
+                  return <p className="mb-4 text-lg leading-relaxed text-slate-700 dark:text-slate-300" {...props}>{children}</p>;
                 },
                 ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-4 space-y-2" {...props} />,
                 ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-4 space-y-2" {...props} />,
