@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Header from "./components/Header";
+import { getPublishedArticles } from "@/db/articles";
 
-export default function Home() {
+export default async function Home() {
   const games = [
     {
       title: "Merger",
@@ -48,20 +49,37 @@ export default function Home() {
     },
   ];
 
-  const articles = [
+  // Fetch articles from database
+  const dbArticles = await getPublishedArticles();
+
+  // Combine with static articles
+  const staticArticles = [
     {
       title: "Getting Started with Next.js",
       description: "Learn the basics of Next.js and React",
       href: "/articles/nextjs-intro",
       date: "2024-01-15",
+      tags: [],
     },
     {
       title: "TypeScript Best Practices",
       description: "Tips for writing better TypeScript code",
       href: "/articles/typescript-tips",
       date: "2024-01-10",
+      tags: [],
     },
   ];
+
+  const articles = [
+    ...dbArticles.map((article) => ({
+      title: article.title,
+      description: article.description || '',
+      href: `/articles/${article.slug}`,
+      date: article.createdAt.toISOString(),
+      tags: article.tags,
+    })),
+    ...staticArticles,
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
@@ -163,13 +181,25 @@ export default function Home() {
                 className="group block p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:shadow-lg"
               >
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="flex-1">
                     <h4 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {article.title}
                     </h4>
-                    <p className="text-slate-600 dark:text-slate-400">
+                    <p className="text-slate-600 dark:text-slate-400 mb-3">
                       {article.description}
                     </p>
+                    {article.tags && article.tags.length > 0 && (
+                      <div className="flex gap-2 flex-wrap">
+                        {article.tags.map((tag) => (
+                          <span
+                            key={tag.id}
+                            className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full"
+                          >
+                            {tag.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <time className="text-sm text-slate-500 dark:text-slate-500 whitespace-nowrap ml-4">
                     {new Date(article.date).toLocaleDateString('en-US', {
