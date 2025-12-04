@@ -2,6 +2,9 @@ import Link from "next/link";
 import Header from "./components/Header";
 import { getPublishedArticles } from "@/db/articles";
 
+// Force dynamic rendering since we fetch from database
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const games = [
     {
