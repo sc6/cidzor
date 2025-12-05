@@ -122,12 +122,12 @@ const evaluate5CardHand = (fiveCards: Card[], debug = false): number => {
 
   // Two pair
   if (counts[0][1] === 2 && counts[1][1] === 2) {
-    return 2000000 + counts[0][0] * 10000 + counts[1][0] * 100 + counts[2][0];
+    return 2000000 + counts[0][0] * 10000 + counts[1][0] * 1000 + counts[2][0];
   }
 
   // One pair
   if (counts[0][1] === 2) {
-    return 1000000 + counts[0][0] * 100000 + counts[1][0] * 1000 + counts[2][0] * 100 + counts[3][0];
+    return 1000000 + counts[0][0] * 10000 + counts[1][0] * 1000 + counts[2][0] * 100 + counts[3][0];
   }
 
   // High card
@@ -167,14 +167,18 @@ const getHandDescription = (score: number): string => {
   if (score >= 5000000) return "Flush";
   if (score >= 4000000) return "Straight";
   if (score >= 3000000) return "Three of a Kind";
-  if (score >= 2000000 && score < 3000000) return "Two Pair";
-  if (score >= 1000000 && score < 2000000) return "One Pair";
-  if (score >= 2000000) return "One Pair (High)"; // High one pair that exceeds 2M
+  if (score >= 2000000) return "Two Pair";
+  if (score >= 1000000) return "One Pair";
   return "High Card";
 };
 
 // Check if player has outs and return both count and list of out cards
 const getOuts = (playerCards: Card[], opponentCards: Card[], board: Card[]): { count: number; cards: Card[] } => {
+  console.log("=== CALCULATING OUTS ===");
+  console.log("Player cards:", playerCards.map(c => `${c.rank}${c.suit}`).join(", "));
+  console.log("Board cards:", board.map(c => `${c.rank}${c.suit}`).join(", "));
+  console.log("Opponent cards:", opponentCards.map(c => `${c.rank}${c.suit}`).join(", "));
+
   const allUsed = [...playerCards, ...opponentCards, ...board];
   const usedSet = new Set(allUsed.map(c => `${c.rank}${c.suit}`));
 
@@ -192,18 +196,42 @@ const getOuts = (playerCards: Card[], opponentCards: Card[], board: Card[]): { c
     }
   }
 
+  console.log(`Remaining cards in deck: ${remainingDeck.length}`);
+
+  // Opponent's best hand with current board (before river)
+  const opponentCurrentScore = evaluateHand([...opponentCards, ...board]);
+  console.log(`Opponent's current hand score: ${opponentCurrentScore} (${getHandDescription(opponentCurrentScore)})`);
+
+  // Player's current best hand (before river)
+  const playerCurrentScore = evaluateHand([...playerCards, ...board]);
+  console.log(`Player's current hand score: ${playerCurrentScore} (${getHandDescription(playerCurrentScore)})`);
+
   const outCards: Card[] = [];
+  let checkedCount = 0;
 
   for (const riverCard of remainingDeck) {
+    checkedCount++;
     // IMPORTANT: Evaluate BOTH hands with the river card
     const playerScore = evaluateHand([...playerCards, ...board, riverCard]);
     const opponentScore = evaluateHand([...opponentCards, ...board, riverCard]);
     const isOut = playerScore > opponentScore;
 
+    if (checkedCount <= 10 || isOut) {
+      console.log(
+        `River: ${riverCard.rank}${riverCard.suit} -> Player: ${playerScore} (${getHandDescription(playerScore)}) vs Opponent: ${opponentScore} (${getHandDescription(opponentScore)}) ${
+          isOut ? "✓ OUT" : "✗ Not an out"
+        }`
+      );
+    }
+
     if (isOut) {
       outCards.push(riverCard);
     }
   }
+
+  console.log(`Total outs found: ${outCards.length}`);
+  console.log("Out cards:", outCards.map(c => `${c.rank}${c.suit}`).join(", "));
+  console.log("=== END OUTS CALCULATION ===\n");
 
   return { count: outCards.length, cards: outCards };
 };
@@ -227,6 +255,7 @@ export default function PokerPotOddsPuzzle() {
   const [showResults, setShowResults] = useState<boolean>(false);
   const [outs, setOuts] = useState<number>(0);
   const [outCards, setOutCards] = useState<Card[]>([]);
+  const [userDecision, setUserDecision] = useState<string>("");
 
   useEffect(() => {
     const generateValidHand = () => {
@@ -257,7 +286,18 @@ export default function PokerPotOddsPuzzle() {
       const opponentScore = evaluateHand([...opponent, ...board]);
 
       // Check if opponent is winning and player has outs
-      if (opponentScore > playerScore && hasOuts(player, opponent, board, deck.slice(0, 8))) {
+      const opponentWinning = opponentScore > playerScore;
+      const playerHasOuts = hasOuts(player, opponent, board, deck.slice(0, 8));
+
+      if (attempts % 100 === 0) {
+        console.log(`Attempt ${attempts}: Player ${playerScore} (${getHandDescription(playerScore)}) vs Opponent ${opponentScore} (${getHandDescription(opponentScore)}) - Opponent winning: ${opponentWinning}, Player has outs: ${playerHasOuts}`);
+      }
+
+      if (opponentWinning && playerHasOuts) {
+        console.log(`✓ Valid puzzle found on attempt ${attempts}`);
+        console.log(`Player: ${player.map(c => `${c.rank}${c.suit}`).join(", ")} - Score: ${playerScore} (${getHandDescription(playerScore)})`);
+        console.log(`Opponent: ${opponent.map(c => `${c.rank}${c.suit}`).join(", ")} - Score: ${opponentScore} (${getHandDescription(opponentScore)})`);
+        console.log(`Board: ${board.map(c => `${c.rank}${c.suit}`).join(", ")}`);
         return { player, board, opponent };
       }
 
@@ -329,7 +369,9 @@ export default function PokerPotOddsPuzzle() {
     }
   }, []);
 
-  const handleDecision = () => {
+  const handleDecision = (decision: string) => {
+    setUserDecision(decision);
+
     console.log("\n📊 CALCULATING POT ODDS:");
     console.log(`Pot: $${potAmount}`);
     console.log(`Opponent all-in bet: $${opponentBet}`);
@@ -359,6 +401,7 @@ export default function PokerPotOddsPuzzle() {
 
     const shouldCall = parseFloat(oddsAgainstPercentage) > parseFloat(potOddsPercentage);
     console.log(`\n✅ Correct decision: ${shouldCall ? "CALL" : "FOLD"}`);
+    console.log(`Your decision: ${decision.toUpperCase()}`);
     console.log(`Reasoning: Odds against (${oddsAgainstPercentage}%) ${shouldCall ? ">" : "<"} Pot odds (${potOddsPercentage}%)\n`);
 
     setShowResults(true);
@@ -467,13 +510,13 @@ export default function PokerPotOddsPuzzle() {
                 </label>
                 <div className="flex gap-4">
                   <button
-                    onClick={handleDecision}
+                    onClick={() => handleDecision("Call")}
                     className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition-colors"
                   >
                     Call
                   </button>
                   <button
-                    onClick={handleDecision}
+                    onClick={() => handleDecision("Fold")}
                     className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md transition-colors"
                   >
                     Fold
@@ -509,12 +552,30 @@ export default function PokerPotOddsPuzzle() {
                       </div>
                     </div>
                     <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
-                      <span className="font-semibold">Decision:</span>{' '}
-                      {parseFloat(oddsAgainstPercentage) > parseFloat(potOddsPercentage) ? (
-                        <span className="text-green-600 dark:text-green-400 font-bold">Call</span>
-                      ) : (
-                        <span className="text-red-600 dark:text-red-400 font-bold">Fold</span>
-                      )}
+                      <div className="mb-2">
+                        <span className="font-semibold">Your Decision:</span>{' '}
+                        <span className={`font-bold ${userDecision === "Call" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                          {userDecision}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-semibold">Correct Decision:</span>{' '}
+                        {parseFloat(oddsAgainstPercentage) > parseFloat(potOddsPercentage) ? (
+                          <>
+                            <span className="text-green-600 dark:text-green-400 font-bold">Call</span>
+                            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                              Your Odds Against ({oddsAgainstPercentage}%) is higher than the Pot Odds ({potOddsPercentage}%), so calling is profitable.
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-red-600 dark:text-red-400 font-bold">Fold</span>
+                            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                              Your Odds Against ({oddsAgainstPercentage}%) should be higher than the Pot Odds ({potOddsPercentage}%) to call profitably.
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
