@@ -175,11 +175,6 @@ const getHandDescription = (score: number): string => {
 
 // Check if player has outs and return both count and list of out cards
 const getOuts = (playerCards: Card[], opponentCards: Card[], board: Card[]): { count: number; cards: Card[] } => {
-  console.log("=== CALCULATING OUTS ===");
-  console.log("Player cards:", playerCards.map(c => `${c.rank}${c.suit}`).join(", "));
-  console.log("Board cards:", board.map(c => `${c.rank}${c.suit}`).join(", "));
-  console.log("Opponent cards:", opponentCards.map(c => `${c.rank}${c.suit}`).join(", "));
-
   const allUsed = [...playerCards, ...opponentCards, ...board];
   const usedSet = new Set(allUsed.map(c => `${c.rank}${c.suit}`));
 
@@ -197,52 +192,18 @@ const getOuts = (playerCards: Card[], opponentCards: Card[], board: Card[]): { c
     }
   }
 
-  console.log(`Remaining cards in deck: ${remainingDeck.length}`);
-
-  // Opponent's best hand with current board (before river)
-  const opponentCurrentScore = evaluateHand([...opponentCards, ...board]);
-  console.log(`Opponent's current hand score: ${opponentCurrentScore} (${getHandDescription(opponentCurrentScore)})`);
-
-  // Player's current best hand (before river)
-  const playerCurrentScore = evaluateHand([...playerCards, ...board]);
-  console.log(`Player's current hand score: ${playerCurrentScore} (${getHandDescription(playerCurrentScore)})`);
-
   const outCards: Card[] = [];
-  let checkedCount = 0;
 
   for (const riverCard of remainingDeck) {
-    checkedCount++;
-    const shouldDebug = checkedCount <= 3 || riverCard.rank === "A";
-
-    if (shouldDebug) {
-      console.log(`\nTesting river card: ${riverCard.rank}${riverCard.suit}`);
-      console.log("Player hand:");
-    }
     // IMPORTANT: Evaluate BOTH hands with the river card
-    const playerScore = evaluateHand([...playerCards, ...board, riverCard], shouldDebug);
-
-    if (shouldDebug) {
-      console.log("Opponent hand:");
-    }
-    const opponentScore = evaluateHand([...opponentCards, ...board, riverCard], shouldDebug);
+    const playerScore = evaluateHand([...playerCards, ...board, riverCard]);
+    const opponentScore = evaluateHand([...opponentCards, ...board, riverCard]);
     const isOut = playerScore > opponentScore;
-
-    if (checkedCount <= 5 || isOut) {
-      console.log(
-        `River: ${riverCard.rank}${riverCard.suit} -> Player: ${playerScore} (${getHandDescription(playerScore)}) vs Opponent: ${opponentScore} (${getHandDescription(opponentScore)}) ${
-          isOut ? "✓ OUT" : "✗ Not an out"
-        }`
-      );
-    }
 
     if (isOut) {
       outCards.push(riverCard);
     }
   }
-
-  console.log(`Total outs found: ${outCards.length}`);
-  console.log("Out cards:", outCards.map(c => `${c.rank}${c.suit}`).join(", "));
-  console.log("=== END OUTS CALCULATION ===\n");
 
   return { count: outCards.length, cards: outCards };
 };
@@ -319,6 +280,19 @@ export default function PokerPotOddsPuzzle() {
       const outsData = getOuts(result.player, result.opponent, result.board);
       setOuts(outsData.count);
       setOutCards(outsData.cards);
+
+      // Generate random pot and bet amounts (multiples of 10, from $10 to $700)
+      const randomAmount = () => (Math.floor(Math.random() * 70) + 1) * 10;
+      const pot = randomAmount();
+      const bet = randomAmount();
+      setPotAmount(pot);
+      setOpponentBet(bet);
+
+      // Log the puzzle in readable format
+      console.log("\n🎰 NEW POKER PUZZLE GENERATED:");
+      console.log(`In Texas Hold'em, if I have ${result.player.map(c => `${c.rank}${c.suit}`).join(", ")}, opponent has ${result.opponent.map(c => `${c.rank}${c.suit}`).join(", ")}, and board is ${result.board.map(c => `${c.rank}${c.suit}`).join(", ")}, and pot is $${pot} with opponent going all in for $${bet}, what are the pot odds, what are the odds against (outs)?\n`);
+
+      return; // Exit early since we've set everything
     } else {
       // Fallback to random if we can't find a valid hand
       const suits: Suit[] = ["♠", "♥", "♦", "♣"];
@@ -342,23 +316,59 @@ export default function PokerPotOddsPuzzle() {
       const outsData = getOuts(player, opponent, board);
       setOuts(outsData.count);
       setOutCards(outsData.cards);
-    }
 
-    // Generate random pot and bet amounts (multiples of 10, from $10 to $700)
-    const randomAmount = () => (Math.floor(Math.random() * 70) + 1) * 10;
-    setPotAmount(randomAmount());
-    setOpponentBet(randomAmount());
+      // Generate random pot and bet amounts
+      const randomAmount = () => (Math.floor(Math.random() * 70) + 1) * 10;
+      const pot = randomAmount();
+      const bet = randomAmount();
+      setPotAmount(pot);
+      setOpponentBet(bet);
+
+      console.log("\n🎰 NEW POKER PUZZLE GENERATED (Fallback):");
+      console.log(`In Texas Hold'em, if I have ${player.map(c => `${c.rank}${c.suit}`).join(", ")}, opponent has ${opponent.map(c => `${c.rank}${c.suit}`).join(", ")}, and board is ${board.map(c => `${c.rank}${c.suit}`).join(", ")}, and pot is $${pot} with opponent going all in for $${bet}, what are the pot odds, what are the odds against (outs)?\n`);
+    }
   }, []);
 
   const handleDecision = () => {
+    console.log("\n📊 CALCULATING POT ODDS:");
+    console.log(`Pot: $${potAmount}`);
+    console.log(`Opponent all-in bet: $${opponentBet}`);
+
+    const totalPotBeforeCall = potAmount + opponentBet;
+    const totalPotAfterCall = potAmount + opponentBet + opponentBet;
+
+    console.log(`Total pot before your call: $${totalPotBeforeCall}`);
+    console.log(`Amount you need to call: $${opponentBet}`);
+    console.log(`Total pot after your call: $${totalPotAfterCall}`);
+
+    // Pot odds ratio: (pot + opponent bet) / opponent bet
+    const potOddsRatio = ((potAmount + opponentBet) / opponentBet).toFixed(2);
+
+    // Pot odds percentage: what you need to call / total pot after call
+    const potOddsPercentage = ((opponentBet / totalPotAfterCall) * 100).toFixed(1);
+
+    console.log(`Pot odds ratio: (${potAmount} + ${opponentBet}) / ${opponentBet} = ${totalPotBeforeCall} / ${opponentBet} = ${potOddsRatio}:1`);
+    console.log(`Pot odds percentage: ${opponentBet} / ${totalPotAfterCall} = ${potOddsPercentage}%`);
+    console.log(`\nOuts: ${outs} cards out of ${52 - 8} remaining cards`);
+
+    const remainingCards = 52 - 8;
+    const oddsAgainstPercentage = ((outs / remainingCards) * 100).toFixed(1);
+
+    console.log(`Odds against (outs): ${outs} / ${remainingCards} = ${oddsAgainstPercentage}%`);
+    console.log(`Out cards: ${outCards.map(c => `${c.rank}${c.suit}`).join(", ")}`);
+
+    const shouldCall = parseFloat(oddsAgainstPercentage) > parseFloat(potOddsPercentage);
+    console.log(`\n✅ Correct decision: ${shouldCall ? "CALL" : "FOLD"}`);
+    console.log(`Reasoning: Odds against (${oddsAgainstPercentage}%) ${shouldCall ? ">" : "<"} Pot odds (${potOddsPercentage}%)\n`);
+
     setShowResults(true);
   };
 
-  // Calculate pot odds: opponent bet / (pot + opponent bet) * 100
-  const potOddsPercentage = ((opponentBet / (potAmount + opponentBet)) * 100).toFixed(1);
+  // Calculate pot odds ratio: (pot + opponent bet) / opponent bet
+  const potOddsRatio = ((potAmount + opponentBet) / opponentBet).toFixed(2);
 
-  // Calculate pot odds ratio (X:1)
-  const potOddsRatio = (potAmount / opponentBet).toFixed(2);
+  // Calculate pot odds percentage: opponent bet / (pot + opponent bet + opponent bet)
+  const potOddsPercentage = ((opponentBet / (potAmount + 2 * opponentBet)) * 100).toFixed(1);
 
   // Calculate odds against: outs / remaining cards (52 - 8 = 44) * 100
   const remainingCards = 52 - 8; // 8 cards are known (2 yours, 4 board, 2 opponent)
