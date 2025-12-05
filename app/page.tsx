@@ -23,6 +23,12 @@ export default async function Home() {
 
   const apps = [
     {
+      title: "Poker Pot Odds Puzzle",
+      description: "Test your poker pot odds calculation skills",
+      href: "/apps/poker-pot-odds-puzzle",
+      tags: ["Puzzle", "Strategy"],
+    },
+    {
       title: "Simigram",
       description: "Easily create chat channels and share chats without logging in",
       href: "https://simigram.com",
