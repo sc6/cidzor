@@ -395,8 +395,9 @@ export default function PokerPotOddsPuzzle() {
 
     const remainingCards = 52 - 8;
     const oddsAgainstPercentage = ((outs / remainingCards) * 100).toFixed(1);
+    const oddsAgainstRatio = outs > 0 ? ((remainingCards - outs) / outs).toFixed(2) : "0.00";
 
-    console.log(`Odds against (outs): ${outs} / ${remainingCards} = ${oddsAgainstPercentage}%`);
+    console.log(`Odds against (outs): ${outs} / ${remainingCards} = ${oddsAgainstPercentage}% (${oddsAgainstRatio}:1)`);
     console.log(`Out cards: ${outCards.map(c => `${c.rank}${c.suit}`).join(", ")}`);
 
     const shouldCall = parseFloat(oddsAgainstPercentage) > parseFloat(potOddsPercentage);
@@ -416,6 +417,9 @@ export default function PokerPotOddsPuzzle() {
   // Calculate odds against: outs / remaining cards (52 - 8 = 44) * 100
   const remainingCards = 52 - 8; // 8 cards are known (2 yours, 4 board, 2 opponent)
   const oddsAgainstPercentage = ((outs / remainingCards) * 100).toFixed(1);
+
+  // Calculate odds against ratio: (remaining cards - outs) : outs
+  const oddsAgainstRatio = outs > 0 ? ((remainingCards - outs) / outs).toFixed(2) : "0.00";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
@@ -535,7 +539,7 @@ export default function PokerPotOddsPuzzle() {
                       <span className="font-semibold">Pot Odds:</span> {potOddsPercentage}% ({potOddsRatio}:1)
                     </div>
                     <div>
-                      <span className="font-semibold">Odds Against (Outs):</span> {oddsAgainstPercentage}% ({outs} outs)
+                      <span className="font-semibold">Odds Against (Outs):</span> {oddsAgainstPercentage}% ({outs} outs, {oddsAgainstRatio}:1)
                       <div className="mt-2 flex flex-wrap gap-1">
                         {outCards.map((card, index) => (
                           <span
