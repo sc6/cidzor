@@ -55,34 +55,13 @@ export default async function Home() {
   // Fetch articles from database
   const dbArticles = await getPublishedArticles();
 
-  // Combine with static articles
-  const staticArticles = [
-    {
-      title: "Getting Started with Next.js",
-      description: "Learn the basics of Next.js and React",
-      href: "/articles/nextjs-intro",
-      date: "2024-01-15",
-      tags: [],
-    },
-    {
-      title: "TypeScript Best Practices",
-      description: "Tips for writing better TypeScript code",
-      href: "/articles/typescript-tips",
-      date: "2024-01-10",
-      tags: [],
-    },
-  ];
-
-  const articles = [
-    ...dbArticles.map((article) => ({
-      title: article.title,
-      description: article.description || '',
-      href: `/articles/${article.id}/${article.slug}`,
-      date: article.createdAt.toISOString(),
-      tags: article.tags,
-    })),
-    ...staticArticles,
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const articles = dbArticles.map((article) => ({
+    title: article.title,
+    description: article.description || '',
+    href: `/articles/${article.id}/${article.slug}`,
+    date: article.createdAt.toISOString(),
+    tags: article.tags,
+  })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
