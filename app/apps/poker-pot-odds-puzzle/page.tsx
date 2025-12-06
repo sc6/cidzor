@@ -369,6 +369,15 @@ export default function PokerPotOddsPuzzle() {
     }
   }, []);
 
+  const generateNewPuzzle = () => {
+    // Reset state
+    setShowResults(false);
+    setUserDecision("");
+
+    // Refresh the page to regenerate puzzle
+    window.location.reload();
+  };
+
   const handleDecision = (decision: string) => {
     setUserDecision(decision);
 
@@ -426,12 +435,26 @@ export default function PokerPotOddsPuzzle() {
       <Header />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-          Poker Pot Odds Puzzle
-        </h1>
-        <p className="text-slate-600 dark:text-slate-400 mb-8">
-          Test your poker pot odds calculation skills
-        </p>
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+              Poker Pot Odds Puzzle
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400">
+              Test your poker pot odds calculation skills
+            </p>
+          </div>
+          <button
+            onClick={generateNewPuzzle}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors flex items-center gap-2"
+            title="New Puzzle"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+            </svg>
+            New Puzzle
+          </button>
+        </div>
 
         <div className="space-y-6 max-w-2xl mx-auto">
           {/* Cards Section */}
@@ -582,6 +605,14 @@ export default function PokerPotOddsPuzzle() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Next Puzzle Button */}
+                  <button
+                    onClick={generateNewPuzzle}
+                    className="w-full mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
+                  >
+                    Next Puzzle
+                  </button>
                 </div>
               )}
             </div>
