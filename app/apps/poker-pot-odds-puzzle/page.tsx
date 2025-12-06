@@ -438,7 +438,7 @@ export default function PokerPotOddsPuzzle() {
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-              Poker Pot Odds Puzzle
+              Texas Hold 'Em Poker Pot Odds Puzzle
             </h1>
             <p className="text-slate-600 dark:text-slate-400">
               Test your poker pot odds calculation skills

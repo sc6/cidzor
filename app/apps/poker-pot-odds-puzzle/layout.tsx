@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Poker Pot Odds Puzzle",
+  title: "Texas Hold 'Em Poker Pot Odds Puzzle",
 };
 
 export default function PokerPotOddsPuzzleLayout({

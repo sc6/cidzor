@@ -23,7 +23,7 @@ export default async function Home() {
 
   const apps = [
     {
-      title: "Poker Pot Odds Puzzle",
+      title: "Texas Hold 'Em Poker Pot Odds Puzzle",
       description: "Test your poker pot odds calculation skills",
       href: "/apps/poker-pot-odds-puzzle",
       tags: ["Puzzle", "Strategy"],
